@@ -3,6 +3,9 @@
 
     There were some issues getting started with installing freebsd and an Ubuntu vm on windows.  They can mostly be chalked up to typos, errors, reading and understanding which machine needs to have scripts ran on, and making sure that the user is in the right directory.  One issue that came up in the first and second iterations of installation was using  windows Powershell, instead of Powershell.  Apparently there is a difference.
 
+## UBUNTU Configuration 
+
+  During the install of the ubuntu server, there were a few missteps.  The first time the server was successfully installed, after running this command: 'sudo apt install kubuntu-desktop podman docker.io zsh tmux ruby-dev fonts-inconsolata autojump bat emacs build-essential cowsay figlet filters fortunes dos2unix containerd python3-pip cargo cmake', some directions I had found online indicated that I should use 'lightdm' instead of the packaged "sddm".  After installing lightdm, and rebooting the system, the server did have more options to login.  It had vanilla ubuntu, not kubuntu. Once the log in process was complete, there wa sno access to files and no terminal. I reinstalled the server and used vanilla kubuntu, and it worked. 
 
 ## Screenshots
 
