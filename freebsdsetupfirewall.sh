@@ -2,7 +2,7 @@
 #
 # To download this script:
 # $ pkg install curl
-# $ curl -LO <change to your githubuseraccount>
+# $ curl -LO https://gitlab.cecs.pdx.edu/crouchj/secdevops-crouchj/-/blob/main/freebsdsetupfirewall.sh
 #
 #The following features are added:
 # - switching (internal to the network) via FreeBSD pf
