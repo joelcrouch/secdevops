@@ -34,46 +34,46 @@ else
     echo "SSH port has been set to $new_ssh_port."
 fi
 
-# Install Snort on the bastion host
-if pkg info snort >/dev/null 2>&1; then
-    echo "Snort is already installed."
+# Install snort3 on the bastion host
+if pkg info snort3 >/dev/null 2>&1; then
+    echo "snort3 is already installed."
 else
-    pkg install -y snort
-    echo "Snort has been installed."
+    pkg install -y snort3
+    echo "snort3 has been installed."
 fi
 
-# Configure Snort to load at boot time
-snort_enable=$(sysrc -n snort_enable)
-if [ "$snort_enable" = "YES" ]; then
-    echo "Snort is already set to load at boot time."
+# Configure snort3 to load at boot time
+snort3_enable=$(sysrc -n snort3_enable)
+if [ "$snort3_enable" = "YES" ]; then
+    echo "snort3 is already set to load at boot time."
 else
-    sysrc snort_enable="YES"
-    echo "Snort has been configured to load at boot time."
+    sysrc snort3_enable="YES"
+    echo "snort3 has been configured to load at boot time."
 fi
 
-# Custom Snort Rules
-# might want to zip up the .sh file with a snort_rules file, open it in the same directory, and then have the script read the rules from there?
-snort_rules="
+# Custom snort3 Rules
+# might want to zip up the .sh file with a snort3_rules file, open it in the same directory, and then have the script read the rules from there?
+snort3_rules="
 alert tcp any any -> any 2222 (msg:\"SSH connection attempt\"; sid:100001;)
 alert icmp any any -> any any (msg:\"ICMP traffic detected\"; sid:100002;)"
 # Add more custom rules here
 
 # Check if local.rules file exists
-if [ -f /usr/local/etc/snort/rules/local.rules ]; then
+if [ -f /usr/local/etc/snort3/rules/local.rules ]; then
     echo "local.rules already exists."
 else
     # If it doesn't exist, create the local.rules file
-    touch /usr/local/etc/snort/rules/local.rules
+    touch /usr/local/etc/snort3/rules/local.rules
     echo "local.rules has been created."
 fi
 
 # Path to the local.rules file
-local_rules_file="/usr/local/etc/snort/rules/local.rules"
+local_rules_file="/usr/local/etc/snort3/rules/local.rules"
 
 # Check if the rules already exist in local.rules
 if [ -f "$local_rules_file" ]; then
     while IFS= read -r line; do
-        if [[ "$line" == "$snort_rules" ]]; then
+        if [[ "$line" == "$snort3_rules" ]]; then
             echo "Rules already exist in local.rules. No changes made."
             rules_exist=true
             break
@@ -83,14 +83,14 @@ fi
 
 # Append the custom rules to the local.rules file if they don't exist
 if [ -z "$rules_exist" ]; then
-    echo "$snort_rules" >> "$local_rules_file"
+    echo "$snort3_rules" >> "$local_rules_file"
     echo "Custom rules added to local.rules."
 fi
 
 
 # Append the custom rules to the local.rules file if they don't exist
 if [ -z "$rules_exist" ]; then
-    echo "$snort_rules" >> "$local_rules_file"
+    echo "$snort3_rules" >> "$local_rules_file"
     echo "Custom rules added to local.rules."
 fi
 
