@@ -18,6 +18,82 @@ if [ "$(id -u)" -ne 0 ]; then
    echo "Please run this script as root."
    exit 1
 fi
+# Choose a new SSH port for management purposes
+new_ssh_port="2222"
+
+# Modify SSH server configuration to use the new port
+if grep -q "^Port $new_ssh_port$" "/etc/ssh/sshd_config"; then
+    echo "SSH port is already set to $new_ssh_port."
+else
+    # Edit the SSH configuration to change the port
+    sed -i '' "s/^Port .*/Port $new_ssh_port/" /etc/ssh/sshd_config
+
+    # Restart the SSH service to apply changes
+    service sshd restart
+
+    echo "SSH port has been set to $new_ssh_port."
+fi
+
+# Install Snort on the bastion host
+if pkg info snort >/dev/null 2>&1; then
+    echo "Snort is already installed."
+else
+    pkg install -y snort
+    echo "Snort has been installed."
+fi
+
+# Configure Snort to load at boot time
+snort_enable=$(sysrc -n snort_enable)
+if [ "$snort_enable" = "YES" ]; then
+    echo "Snort is already set to load at boot time."
+else
+    sysrc snort_enable="YES"
+    echo "Snort has been configured to load at boot time."
+fi
+
+# Custom Snort Rules
+# might want to zip up the .sh file with a snort_rules file, open it in the same directory, and then have the script read the rules from there?
+snort_rules="
+alert tcp any any -> any 2222 (msg:\"SSH connection attempt\"; sid:100001;)
+alert icmp any any -> any any (msg:\"ICMP traffic detected\"; sid:100002;)"
+# Add more custom rules here
+
+# Check if local.rules file exists
+if [ -f /usr/local/etc/snort/rules/local.rules ]; then
+    echo "local.rules already exists."
+else
+    # If it doesn't exist, create the local.rules file
+    touch /usr/local/etc/snort/rules/local.rules
+    echo "local.rules has been created."
+fi
+
+# Path to the local.rules file
+local_rules_file="/usr/local/etc/snort/rules/local.rules"
+
+# Check if the rules already exist in local.rules
+if [ -f "$local_rules_file" ]; then
+    while IFS= read -r line; do
+        if [[ "$line" == "$snort_rules" ]]; then
+            echo "Rules already exist in local.rules. No changes made."
+            rules_exist=true
+            break
+        fi
+    done < "$local_rules_file"
+fi
+
+# Append the custom rules to the local.rules file if they don't exist
+if [ -z "$rules_exist" ]; then
+    echo "$snort_rules" >> "$local_rules_file"
+    echo "Custom rules added to local.rules."
+fi
+
+
+# Append the custom rules to the local.rules file if they don't exist
+if [ -z "$rules_exist" ]; then
+    echo "$snort_rules" >> "$local_rules_file"
+    echo "Custom rules added to local.rules."
+fi
+
 
 # Set your network interfaces names; set these as they appear in ifconfig
 # they will not be renamed during the course of installation
@@ -139,7 +215,7 @@ block return out quick on egress to <rfc6890>
 block log all 
 
 # Port Forwarding Rule for SSH from Bastion Host to Ubuntu System
-rdr pass on $ext_if proto tcp from any to $ext_if port 22 -> 192.168.33.1 port 22
+rdr pass on $ext_if proto tcp from any to $ext_if port 2222 -> 192.168.33.1 port 22
 
 
 # Declare an array of pass rules
@@ -170,23 +246,6 @@ for rule in "${pass_rules[@]}"; do
     fi
 done
 " >> /etc/pf.conf
-
-# Choose a new SSH port for management purposes
-new_ssh_port="2222"
-
-# Modify SSH server configuration to use the new port
-if grep -q "^Port $new_ssh_port$" "/etc/ssh/sshd_config"; then
-    echo "SSH port is already set to $new_ssh_port."
-else
-    # Edit the SSH configuration to change the port
-    sed -i '' "s/^Port .*/Port $new_ssh_port/" /etc/ssh/sshd_config
-
-    # Restart the SSH service to apply changes
-    service sshd restart
-
-    echo "SSH port has been set to $new_ssh_port."
-fi
-
 
 # Start dnsmasq
 service dnsmasq start
