@@ -1,8 +1,9 @@
 #!/bin/sh
-#
 # To download this script:
 # $ pkg install curl
 # $ curl -LO https://gitlab.cecs.pdx.edu/crouchj/secdevops-crouchj/-/blob/main/freebsdsetupfirewall.sh
+# $ chmod +x freebsdsetupfirewall.sh
+
 #
 #The following features are added:
 # - switching (internal to the network) via FreeBSD pf
@@ -12,6 +13,9 @@
 
 # Additional Feature:
 # - Modify the local SSH server port for management purposes
+# - Add snort installation and configuration
+# - Add test capabilites via a test script 
+# curl -LO https://gitlab.cecs.pdx.edu/crouchj/secdevops-crouchj/-/blob/main/snorttest.sh
 
 # Check if the script is run with superuser privileges
 if [ "$(id -u)" -ne 0 ]; then
