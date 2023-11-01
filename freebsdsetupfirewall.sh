@@ -1,7 +1,7 @@
 #!/bin/sh
 # To download this script:
 # $ pkg install curl
-# $ curl -LO https://gitlab.cecs.pdx.edu/crouchj/secdevops-crouchj/-/blob/main/freebsdsetupfirewall.sh
+# $ curl -LO https://gitlab.cecs.pdx.edu/crouchj/secdevops-crouchj/-/blob/main/freebsdsetupfirewall.sh?ref_type=heads
 # $ chmod +x freebsdsetupfirewall.sh
 
 #
@@ -38,13 +38,28 @@ else
     echo "SSH port has been set to $new_ssh_port."
 fi
 
-# Install snort3 on the bastion host
-if pkg info snort3 >/dev/null 2>&1; then
-    echo "snort3 is already installed."
-else
-    pkg install -y snort3
-    echo "snort3 has been installed."
-fi
+# Snort installation and configuration commands go here
+freebsd-update fetch
+freebsd-update install
+pkg update
+reboot
+
+mkdir ~/snort_src && cd ~/snort_src
+
+pkg install git flex bison gcc cmake libdnet libpcap hwloc pcre openssl luajit lua51 pkgconf libpcap
+
+wget https://github.com/snort3/libdaq/archive/refs/tags/v3.0.9.tar.gz
+tar xf v3.0.9.tar.gz && cd libdaq-3.0.9
+pkg install autoconf automake libtool
+./bootstrap
+./configure
+make
+make install
+
+# (The rest of your Snort setup commands go here)
+
+#test against default config file
+/usr/local/snort/bin/snort -c /usr/local/snort/etc/snort/snort.lua --daq-dir /usr/local/lib/daq
 
 # Configure snort3 to load at boot time
 snort3_enable=$(sysrc -n snort3_enable)
