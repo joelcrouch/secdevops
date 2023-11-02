@@ -17,29 +17,39 @@ Inlin-style:
 
 .ssh/config
 ```
-cat config
-Host ada
-  HostName linux.cs.pdx.edu
-Host *
-    #don't require calling ssh-add to use the agent
-    AddKeysToAgent yes
-    #macOS has a UseKeychain option, but not every OS does
-    IgnoreUnknown UseKeychain
-    UseKeychain yes
-    #default to forwarding X11
-    ForwardX11Trusted yes
-    #set default username -- ***CHANGE THIS TO YOUR USERNAME***
-    User crouchj
-    #This assumes you followed the instructions above
-    IdentityFile ~.ssh/id_ed25519
-    #keep connection alive every 30 seconds
-    ServerAliveInterval 30
-    #don't allow for more than 3 consecutive missed keepalives
-    ServerAliveCountMax 3
+# Host ada 
+#   Hostname linux.cs.pdx.edu 
 
-    Host ubuntu-win
-    Hostname 192.168.33.133
-    ProxyJump 192.168.1.170
+# Host *
+#   #don't require calling ssh-add to use the agent
+#   AddKeysToAgent yes
+#   #macOS has a UseKeychain option, but not every OS does
+#   IgnoreUnknown UseKeychain
+#   UseKeychain yes
+#   #default to forwarding X11
+#   ForwardX11Trusted yes
+#   #set default username -- ***CHANGE THIS TO YOUR USERNAME***
+#   User your_user_name_here
+#   #This assumes you followed the instructions above
+#   IdentityFile ~.ssh/id_ed25519
+#   #keep connection alive every 30 seconds
+#   ServerAliveInterval 30
+#   #don't allow for more than 3 consecutive missed keepalives
+#   ServerAliveCountMax 3
+
+Host JC-HOST-FREEBSD
+  HostName 172.27.133.36 
+  User root
+  IdentityFile ~/.ssh/free_bsd
+
+Host Pony_1
+  HostName 192.168.33.59
+  User jelly
+  ProxyJump JC-HOST-FREEBSD
+
+Host babbage.cs.pdx.edu
+  HostName babbage.cs.pdx.edu
+  User crouchj
 
 ```
 
