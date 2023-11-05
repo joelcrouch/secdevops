@@ -5,20 +5,27 @@ In this section, we'll document the firewall rule that forwards SSH traffic from
 ### Rule to Forward SSH Traffic
 
 We will create a rule in the FreeBSD PF firewall configuration to forward incoming SSH traffic from the bastion host (port 22) to your Ubuntu system's port 22. This will allow you to access your Ubuntu system securely through the bastion host.
-
+This rule is added in the "NAT rules" section. It is very important that this rule is placed in the appropriate spot, with the correct syntax.
 
 # Port Forwarding Rule for SSH from Bastion Host to Ubuntu System
 ```bash
-    rdr pass on hn0 proto tcp from any to hn0 port 22 -> 192.168.33.1 port 22
+    rdr on $ext_if proto tcp from any to any port 22 -> $other_machine port 22
+
 ```
 In the rule above: 
-    "rdr pass on hn0" instructs PF to perform port forwarding on the WAN interface (hn0)
-    "proto top" specifies this rule is for TCP traffic (SSH uses TCP)
+    "rdr pass on $ext_if" instructs PF to perform port forwarding on the WAN interface (hn0)
+    "proto tcp" specifies this rule is for TCP traffic (SSH uses TCP)
     "from any" means the source is any host
     "to hn0 port 22" defines the destination as the WAN interface (hn0) on port 22(bastion hosts ssh port)
-    "-> 192.168.33.1 port 22"  specifies the traffic should be forwared to the Ubuntu system (IP: 192.168.33.1) on port 22 (ubuntu ssh port)
+    "-> other_machine port 22"  specifies the traffic should be forwared to the Ubuntu system (IP: 192.168.33.59) on port 22 (ubuntu ssh port).  other_machine is a variable referring to the external IP of the ubuntu server.
 
+## Test Forwarding Rules
+From an external machine, attempt to ssh into the freebsd machine. This should forward you directly to the Ubuntu server
+```
+ssh <Free BSD Server Name>
 
+```
+The above command should take you directly to the ubuntu server.  If your ssh keys are set up properly, you should be in the ubuntu server.
 ## SSH Port Configuration
 
 To enhance security, the SSH server port has been changed for management purposes. Here's how this change was made:
