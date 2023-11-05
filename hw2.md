@@ -62,6 +62,18 @@ Then this command needs to be run:
 pfctl -f /etc/pf.conf
 
 ```
+
+### Change in .ssh/config on host machine 
+Add a line in the FREEBSD HOST section to show which port should be used for ssh'ing into the FreeBSD Machine.  It should look similar to this: 
+
+```bash
+Host JC-HOST-FREEBSD
+  HostName <IP_Address of JC-HOST-FREEBSD>
+  User <user name>
+  Port 2222
+  IdentityFile ~/.ssh/free_bsd
+```
+We chose port 2222 for easy remembering.  Choose a port that you like above 1024.
 ## Snort Installation and Configuration
 
 To enhance network security, Snort, an open-source intrusion detection system (IDS), has been installed and configured on the bastion host. Here's a summary of the installation and configuration steps:
