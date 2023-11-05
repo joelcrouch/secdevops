@@ -45,12 +45,23 @@ To enhance security, the SSH server port has been changed for management purpose
         sed -i '' "s/^Port .*/Port $new_ssh_port/" /etc/ssh/sshd_config
 
         # Restart the SSH service to apply changes
-        service sshd restart
-
+        #service sshd restart  Use the right command.
+        /etc/rc.d/sshd restart
         echo "SSH port has been set to $new_ssh_port."
     fi
 ```
+## ADD Fire Wall rule that allows traffic on management port
+The following lines need to be added to the pf.conf
+```bash 
+#allow incoming SSH traffic on port 2222
+pass in on $ext_if proto tcp from any to $ext_if:0 port 2222
+```
 
+Then this command needs to be run: 
+```bash
+pfctl -f /etc/pf.conf
+
+```
 ## Snort Installation and Configuration
 
 To enhance network security, Snort, an open-source intrusion detection system (IDS), has been installed and configured on the bastion host. Here's a summary of the installation and configuration steps:
