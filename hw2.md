@@ -51,13 +51,24 @@ To enhance security, the SSH server port has been changed for management purpose
     fi
 ```
 ## ADD Fire Wall rule that allows traffic on management port
-The following lines need to be added to the pf.conf
+The following lines are the code that adds the firewall rule.
 ```bash 
-#allow incoming SSH traffic on port 2222
-pass in on $ext_if proto tcp from any to $ext_if:0 port 2222
+#add the firewall rule to let in traffic on 2222
+# Define the marker or comment to identify the location for the pass rules
+marker="pass rules"
+
+# Check if the marker exists in pf.conf
+if grep -q "$marker" /etc/pf.conf; then
+    # Append the SSH rule for port 2222 right under the marker
+    sed -i "/$marker/a #allow incoming SSH traffic on port 2222" /etc/pf.conf
+    sed -i "/$marker/a pass in on \$ext_if proto tcp from any to \$ext_if:0 port 2222" /etc/pf.conf
+    echo "SSH rule for port 2222 has been added to pf.conf in the pass rules section."
+else
+    echo "The marker for the pass rules section was not found in pf.conf. Please make sure to add it."
+fi
 ```
 
-Then this command needs to be run: 
+Then this command needs to be run, and its done at the end: 
 ```bash
 pfctl -f /etc/pf.conf
 
@@ -74,6 +85,29 @@ Host JC-HOST-FREEBSD
   IdentityFile ~/.ssh/free_bsd
 ```
 We chose port 2222 for easy remembering.  Choose a port that you like above 1024.
+
+## TEST for the changing port.
+The first test we ran is just a simple 'ssh <nameofhost>', and the ssh command successfully received access to the FreeBSD server.  Then the line in .ssh/config 'Port 2222' was commented out and 'ssh -p 2222 JC-HOST-FREEBSD' received accees to the server.
+
+## FireWall rules for SMB Ghost  
+```bash 
+#add firewall rulse for smb ghost  
+# Insert the custom pass rule before the # Blocking rules section
+marker="# Blocking rules"
+new_rule="pass in on \$ext_if proto tcp from 192.168.0.1 to \$ext_if port 445"
+
+# Use sed to insert the new rule before the marker
+sed -i "/$marker/i $new_rule" /etc/pf.conf
+
+# Insert the custom smbg ghostblock rule after the # blocking rule section
+marker="# blocking rule"
+new_rule="block in on \$ext_if proto tcp to \$ext_if port 445"
+
+# Use sed to insert the new rule after the marker
+sed -i "/$marker/a $new_rule" /etc/pf.conf
+
+```
+The commands above should put the firewall rules in the right place for readability and not generating errors. The first allows traffic on port 445 from the admin machine, and the second blocks all the rest of traffic on 445.
 ## Snort Installation and Configuration
 
 To enhance network security, Snort, an open-source intrusion detection system (IDS), has been installed and configured on the bastion host. Here's a summary of the installation and configuration steps:
