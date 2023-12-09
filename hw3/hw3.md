@@ -115,3 +115,67 @@ docker ps also gets you the name of the container and its id. Now you can run:
 
 Well, the 'dperson/samba' repo had some unresolvable errors.  It was probably user error. There are a lot of instructions -->
 
+After careful googling and reading of samba documentation, I discovered that a) I put the 'shared' folder in the home directory, not the root directory, and b) i didn't change the .yml file appropriately. 
+Here are the actual steps i did.  
+1. Install docker: ```sudo apt install docker.io```  It was already installed, so good to go.
+2. Pull the docker image: ``` sudo docker pull dperson/samba```
+3. Make sure my 'shared' folder was in the root directory.
+4. Run the following commandd:```sudo docker run -it --name samba -p 139:139 -p 445:445 -v /shared:/mount -d dperson/samba -s "shared;/mount;yes;no;yes;all;all" -u "user;password```
+   (it adds a user:password, not great but there it is)
+5.  It didn't work at first and then i allowed the samba traffic by adding a rule to pf.conf
+  ```rdr pass on $ext_if proto tcp from any to $ext_if port 139 -> 172.0.1.16 port 139
+    rdr pass on $ext_if proto tcp from any to $ext_if port 445 ->  172.0.1.16 port 445
+  ```
+
+I also installed docker on my laptop. 
+And now i can use the file explorer to open up '\\172.0.1.16\'shared'.  If i add a file, it shows up!
+
+## PIHOLE
+
+Download a pihole image: ```sudo docker pull pihole/pihole```
+So by default, port 53 is listening for something.   After messing around for a long time, i finally read some pi hole documentation, and found out if i added "DNSStubListener=no" to  /etc/systemd/resolved.conf, i could make it work.
+
+I ran this ```sudo docker run -d --name pihole -e -p 53:53/tcp -p 53:53/udp -p 67:67/udp -p 80:80 -p 443:443 TZ="America/Los_Angeles" -v "$(pwd)/etc-pihole/:/etc/pihole/" -v "$(pwd)/etc-dnsmasq.d/:/etc/dnsmasq.d/"--network=pihole_network --hostname pi.hole -e VIRTUAL_HOST="pi.hole" ServerIP="192.168.33.1" -e WEBPASSWORD="user" PROXY_LOCATION="pi.hole"--restart=unless-stopped pihole/pihole:latest
+```    Its kind of a mish-mash of garbage and I threw it at the wall, and some of it stuck.  So it kinda works
+
+### Docker Compose
+
+Docker-compose was installed allready during the initial installation. If its not run 'sudo apt install docker-compose'.  I ran this yml file:
+```yml
+version: '3'
+services:
+  samba:
+    image: dperson/samba
+    restart: unless-stopped
+    ports:
+        - "53:53/tcp"
+        - "53:53/udp"
+        - "67:67/udp"
+        - "80:80"
+        - "443:443"
+    volumes:
+      - /shared:/mount
+    command: '-s "shared;/mount;yes;no;yes;all;all" 
+      
+
+  pihole:
+    image: pihole/pihole:latest
+    restart: unless-stopped
+    environment:
+      TZ: 'America/Los_Angeles'
+      WEBPASSWORD: 'user'
+    volumes:
+      - ./etc-pihole/:/etc/pihole/
+      - ./etc-dnsmasq.d/:/etc/dnsmasq.d/
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+      - 67:67/udp
+      - 80:80
+      - 443:443
+
+```
+
+  
+
+  
